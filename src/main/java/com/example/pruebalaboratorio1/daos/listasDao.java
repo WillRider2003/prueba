@@ -1,4 +1,3 @@
-// listasDao.java
 package com.example.pruebalaboratorio1.daos;
 
 import com.example.pruebalaboratorio1.beans.genero;
@@ -10,18 +9,21 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.ArrayList;
 
+// *** CAMBIO: Ahora hereda de baseDao ***
 public class listasDao extends baseDao {
 
+    // *** CAMBIO: Implementación del método abstracto ***
     @Override
     public boolean validarBorrado(Object entity) {
         return false; // No aplica para esta clase
     }
 
+    // *** CAMBIO: Método implementado para listar géneros ***
     public ArrayList<genero> listarGeneros() {
         ArrayList<genero> listaGeneros = new ArrayList<>();
 
         try (Connection conn = getConnection();
-             Statement stmt = conn.createStatement()) {
+                Statement stmt = conn.createStatement()) {
 
             String sql = "SELECT * FROM genero ORDER BY nombre";
             ResultSet rs = stmt.executeQuery(sql);
@@ -40,11 +42,12 @@ public class listasDao extends baseDao {
         return listaGeneros;
     }
 
+    // *** CAMBIO: Método implementado para listar servicios de streaming ***
     public ArrayList<streaming> listarStreamings() {
         ArrayList<streaming> listaStreamings = new ArrayList<>();
 
         try (Connection conn = getConnection();
-             Statement stmt = conn.createStatement()) {
+                Statement stmt = conn.createStatement()) {
 
             String sql = "SELECT * FROM streaming ORDER BY nombreServicio";
             ResultSet rs = stmt.executeQuery(sql);

@@ -1,10 +1,8 @@
 package com.example.pruebalaboratorio1.beans;
 
 public class pelicula {
-
     private int idPelicula;
     private String titulo;
-
     private String director;
     private int anoPublicacion;
     private Double rating;
@@ -13,8 +11,12 @@ public class pelicula {
     private String streaming;
     private String duracion;
     private boolean premioOscar;
+    
+    // *** CAMBIO: Se agregaron objetos para género y streaming ***
+    private genero generoObj;
+    private streaming streamingObj;
 
-
+    // Getters y setters existentes (sin cambios)
     public int getIdPelicula() {
         return idPelicula;
     }
@@ -93,5 +95,30 @@ public class pelicula {
 
     public void setPremioOscar(boolean premioOscar) {
         this.premioOscar = premioOscar;
+    }
+
+    // *** CAMBIO: Nuevos getters y setters para objetos ***
+    public genero getGeneroObj() {
+        return generoObj;
+    }
+
+    public void setGeneroObj(genero generoObj) {
+        this.generoObj = generoObj;
+        // Actualizar también el String para compatibilidad
+        if (generoObj != null) {
+            this.genero = generoObj.getNombre();
+        }
+    }
+
+    public streaming getStreamingObj() {
+        return streamingObj;
+    }
+
+    public void setStreamingObj(streaming streamingObj) {
+        this.streamingObj = streamingObj;
+        // Actualizar también el String para compatibilidad
+        if (streamingObj != null) {
+            this.streaming = streamingObj.getNombreServicio();
+        }
     }
 }
