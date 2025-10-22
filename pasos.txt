@@ -1,0 +1,7 @@
+1. cd a la carpeta en la q chambeas
+2. git init
+3. git checkout -b develop
+4. git remote add develop LINKDEREPOSITORIO
+5. git add .
+6. git commit -m "lab_7"
+7. git push -u develop develop //la ultima es a donde quieras mover
