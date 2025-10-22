@@ -1,61 +1,47 @@
 package com.example.pruebalaboratorio1.daos;
 
 import com.example.pruebalaboratorio1.beans.pelicula;
-
+import com.example.pruebalaboratorio1.beans.genero;
 import java.sql.*;
-import java.util.ArrayList;
 
-public class detallesDao {
+// *** CAMBIO: Ahora hereda de baseDao ***
+public class detallesDao extends baseDao {
+
+    // *** CAMBIO: Implementación del método abstracto ***
+    @Override
+    public boolean validarBorrado(Object entity) {
+        return false; // No aplica para detalles
+    }
 
     public pelicula obtenerPelicula(int idPelicula) {
-
         pelicula movie = new pelicula();
-        try {
-            Class.forName("com.mysql.cj.jdbc.Driver");
-        } catch (ClassNotFoundException e) {
-            throw new RuntimeException(e);
-        }
 
-        String url = "jdbc:mysql://localhost:3306/mydb?serverTimezone=America/Lima";
-        String username = "root";
-        String password = "root";
+        // *** CAMBIO: Usa getConnection() de baseDao ***
+        try (Connection conn = getConnection();
+                PreparedStatement pstmt = conn.prepareStatement(
+                        "SELECT p.*, g.nombre as genero_nombre " +
+                                "FROM pelicula p " +
+                                "INNER JOIN genero g ON p.idGenero = g.idGenero " +
+                                "WHERE p.IDPELICULA = ?")) {
 
-        try {
-            Connection conn = DriverManager.getConnection(url, username, password);
-            Statement stmt = conn.createStatement();
+            pstmt.setInt(1, idPelicula);
+            ResultSet rs = pstmt.executeQuery();
 
-            String sql = "SELECT A.*, B.NOMBRE FROM \n" +
-                    "(SELECT * FROM PELICULA WHERE IDPELICULA = \n" +
-                     idPelicula +
-                    ") AS A \n" +
-                    "INNER JOIN \n" +
-                    "(SELECT * FROM GENERO) AS B\n" +
-                    "ON A.IDGENERO = B.IDGENERO";
-            // hacer el join con el genero y pedir que se haga por rating desc
-            // agregar buscador
+            if (rs.next()) {
+                movie.setIdPelicula(rs.getInt("idPelicula"));
+                movie.setTitulo(rs.getString("titulo"));
+                movie.setDirector(rs.getString("director"));
+                movie.setAnoPublicacion(rs.getInt("anoPublicacion"));
+                movie.setRating(rs.getDouble("rating"));
+                movie.setBoxOffice(rs.getDouble("boxOffice"));
+                movie.setDuracion(rs.getString("duracion"));
+                movie.setPremioOscar(rs.getBoolean("premioOscar"));
 
-            ResultSet rs = stmt.executeQuery(sql);
-
-
-            while (rs.next()) {
-
-                int id = rs.getInt(1);
-                movie.setIdPelicula(id);
-                String titulo = rs.getString("titulo");
-                movie.setTitulo(titulo);
-                String director = rs.getString("director");
-                movie.setDirector(director);
-                int anoPublicacion = rs.getInt("anoPublicacion");
-                movie.setAnoPublicacion(anoPublicacion);
-                double rating = rs.getDouble("rating");
-                movie.setRating(rating);
-                double boxOffice = rs.getDouble("boxOffice");
-                movie.setBoxOffice(boxOffice);
-                String nombregenero = rs.getString("nombre");
-                movie.setGenero(nombregenero);
-
-
-
+                // *** CAMBIO: Se crea objeto género ***
+                genero gen = new genero();
+                gen.setIdGenero(rs.getInt("idGenero"));
+                gen.setNombre(rs.getString("genero_nombre"));
+                movie.setGeneroObj(gen);
             }
 
         } catch (SQLException e) {

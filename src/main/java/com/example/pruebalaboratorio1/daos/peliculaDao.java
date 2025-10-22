@@ -1,4 +1,3 @@
-// peliculaDao.java
 package com.example.pruebalaboratorio1.daos;
 
 import com.example.pruebalaboratorio1.beans.pelicula;
@@ -8,8 +7,10 @@ import com.example.pruebalaboratorio1.beans.streaming;
 import java.sql.*;
 import java.util.ArrayList;
 
+// *** CAMBIO: Ahora hereda de baseDao ***
 public class peliculaDao extends baseDao {
 
+    // *** CAMBIO: Implementación del método abstracto de validación ***
     @Override
     public boolean validarBorrado(Object entity) {
         if (entity instanceof pelicula) {
@@ -29,14 +30,17 @@ public class peliculaDao extends baseDao {
     public ArrayList<pelicula> listarPeliculas() {
         ArrayList<pelicula> listaPeliculas = new ArrayList<>();
 
+        // *** CAMBIO: Usa getConnection() de baseDao en lugar de crear conexión local
+        // ***
         try (Connection conn = getConnection();
-             Statement stmt = conn.createStatement()) {
+                Statement stmt = conn.createStatement()) {
 
+            // *** CAMBIO: Query actualizada para incluir nuevos campos ***
             String sql = "SELECT p.*, g.nombre as genero_nombre, s.nombreServicio as streaming_nombre " +
-                        "FROM pelicula p " +
-                        "INNER JOIN genero g ON p.idGenero = g.idGenero " +
-                        "INNER JOIN streaming s ON p.idStreaming = s.idStreaming " +
-                        "ORDER BY p.rating DESC, p.boxOffice DESC";
+                    "FROM pelicula p " +
+                    "INNER JOIN genero g ON p.idGenero = g.idGenero " +
+                    "INNER JOIN streaming s ON p.idStreaming = s.idStreaming " +
+                    "ORDER BY p.rating DESC, p.boxOffice DESC";
 
             ResultSet rs = stmt.executeQuery(sql);
 
@@ -50,13 +54,13 @@ public class peliculaDao extends baseDao {
                 movie.setBoxOffice(rs.getDouble("boxOffice"));
                 movie.setDuracion(rs.getString("duracion"));
                 movie.setPremioOscar(rs.getBoolean("premioOscar"));
-                
-                // Crear objetos para género y streaming
+
+                // *** CAMBIO: Se crean objetos para género y streaming ***
                 genero gen = new genero();
                 gen.setIdGenero(rs.getInt("idGenero"));
                 gen.setNombre(rs.getString("genero_nombre"));
                 movie.setGeneroObj(gen);
-                
+
                 streaming stream = new streaming();
                 stream.setIdStreaming(rs.getInt("idStreaming"));
                 stream.setNombreServicio(rs.getString("streaming_nombre"));
@@ -72,17 +76,18 @@ public class peliculaDao extends baseDao {
         return listaPeliculas;
     }
 
+    // *** CAMBIO: Método implementado para filtrar por género ***
     public ArrayList<pelicula> listarPeliculasFiltradas(int idGenero) {
         ArrayList<pelicula> listaPeliculasFiltradas = new ArrayList<>();
 
         try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(
-                 "SELECT p.*, g.nombre as genero_nombre, s.nombreServicio as streaming_nombre " +
-                 "FROM pelicula p " +
-                 "INNER JOIN genero g ON p.idGenero = g.idGenero " +
-                 "INNER JOIN streaming s ON p.idStreaming = s.idStreaming " +
-                 "WHERE p.idGenero = ? " +
-                 "ORDER BY p.rating DESC, p.boxOffice DESC")) {
+                PreparedStatement pstmt = conn.prepareStatement(
+                        "SELECT p.*, g.nombre as genero_nombre, s.nombreServicio as streaming_nombre " +
+                                "FROM pelicula p " +
+                                "INNER JOIN genero g ON p.idGenero = g.idGenero " +
+                                "INNER JOIN streaming s ON p.idStreaming = s.idStreaming " +
+                                "WHERE p.idGenero = ? " +
+                                "ORDER BY p.rating DESC, p.boxOffice DESC")) {
 
             pstmt.setInt(1, idGenero);
             ResultSet rs = pstmt.executeQuery();
@@ -97,12 +102,12 @@ public class peliculaDao extends baseDao {
                 movie.setBoxOffice(rs.getDouble("boxOffice"));
                 movie.setDuracion(rs.getString("duracion"));
                 movie.setPremioOscar(rs.getBoolean("premioOscar"));
-                
+
                 genero gen = new genero();
                 gen.setIdGenero(rs.getInt("idGenero"));
                 gen.setNombre(rs.getString("genero_nombre"));
                 movie.setGeneroObj(gen);
-                
+
                 streaming stream = new streaming();
                 stream.setIdStreaming(rs.getInt("idStreaming"));
                 stream.setNombreServicio(rs.getString("streaming_nombre"));
@@ -118,11 +123,13 @@ public class peliculaDao extends baseDao {
         return listaPeliculasFiltradas;
     }
 
+    // *** CAMBIO: Método implementado para crear película ***
     public void crearPelicula(pelicula movie) {
         try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(
-                 "INSERT INTO pelicula (titulo, director, anoPublicacion, rating, boxOffice, duracion, idGenero, idStreaming, premioOscar) " +
-                 "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
+                PreparedStatement pstmt = conn.prepareStatement(
+                        "INSERT INTO pelicula (titulo, director, anoPublicacion, rating, boxOffice, duracion, idGenero, idStreaming, premioOscar) "
+                                +
+                                "VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)")) {
 
             pstmt.setString(1, movie.getTitulo());
             pstmt.setString(2, movie.getDirector());
@@ -141,14 +148,15 @@ public class peliculaDao extends baseDao {
         }
     }
 
+    // *** CAMBIO: Método implementado para borrar película con validación ***
     public void borrarPelicula(int idPelicula) {
         // Primero obtener la película para validar
         pelicula movie = obtenerPeliculaPorId(idPelicula);
-        
+
         if (movie != null && validarBorrado(movie)) {
             try (Connection conn = getConnection();
-                 PreparedStatement pstmt = conn.prepareStatement(
-                     "DELETE FROM pelicula WHERE idPelicula = ?")) {
+                    PreparedStatement pstmt = conn.prepareStatement(
+                            "DELETE FROM pelicula WHERE idPelicula = ?")) {
 
                 pstmt.setInt(1, idPelicula);
                 pstmt.executeUpdate();
@@ -159,14 +167,15 @@ public class peliculaDao extends baseDao {
         }
     }
 
+    // *** CAMBIO: Método privado para obtener película por ID ***
     private pelicula obtenerPeliculaPorId(int idPelicula) {
         try (Connection conn = getConnection();
-             PreparedStatement pstmt = conn.prepareStatement(
-                 "SELECT p.*, g.nombre as genero_nombre, s.nombreServicio as streaming_nombre " +
-                 "FROM pelicula p " +
-                 "INNER JOIN genero g ON p.idGenero = g.idGenero " +
-                 "INNER JOIN streaming s ON p.idStreaming = s.idStreaming " +
-                 "WHERE p.idPelicula = ?")) {
+                PreparedStatement pstmt = conn.prepareStatement(
+                        "SELECT p.*, g.nombre as genero_nombre, s.nombreServicio as streaming_nombre " +
+                                "FROM pelicula p " +
+                                "INNER JOIN genero g ON p.idGenero = g.idGenero " +
+                                "INNER JOIN streaming s ON p.idStreaming = s.idStreaming " +
+                                "WHERE p.idPelicula = ?")) {
 
             pstmt.setInt(1, idPelicula);
             ResultSet rs = pstmt.executeQuery();
@@ -181,12 +190,12 @@ public class peliculaDao extends baseDao {
                 movie.setBoxOffice(rs.getDouble("boxOffice"));
                 movie.setDuracion(rs.getString("duracion"));
                 movie.setPremioOscar(rs.getBoolean("premioOscar"));
-                
+
                 genero gen = new genero();
                 gen.setIdGenero(rs.getInt("idGenero"));
                 gen.setNombre(rs.getString("genero_nombre"));
                 movie.setGeneroObj(gen);
-                
+
                 streaming stream = new streaming();
                 stream.setIdStreaming(rs.getInt("idStreaming"));
                 stream.setNombreServicio(rs.getString("streaming_nombre"));
